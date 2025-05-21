@@ -10,7 +10,7 @@ services:
     ports:
       - "${PORT_SERVER}:${PORT_SERVER}"
     environment:
-      - AUTH_TOKEN=https:${AUTH_TOKEN}
+      - AUTH_TOKEN=${AUTH_TOKEN}
       - SERVER=${SERVER}
       - REDIS_HOST=${REDIS_HOST}
     volumes:
