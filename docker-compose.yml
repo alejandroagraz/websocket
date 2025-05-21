@@ -10,9 +10,9 @@ services:
     ports:
       - "${PORT_SERVER}:${PORT_SERVER}"
     environment:
-      - AUTH_TOKEN=${AUTH_TOKEN}
-      - SERVER=${SERVER}
-      - REDIS_HOST=${REDIS_HOST}
+      AUTH_TOKEN: ${AUTH_TOKEN}
+      SERVER: ${SERVER}
+      REDIS_HOST: ${REDIS_HOST}
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
