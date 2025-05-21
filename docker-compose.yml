@@ -1,0 +1,17 @@
+# ./ docker.compose.yml
+
+version: '3.8'
+
+services:
+  websocket:
+    build: .  
+    env_file: .env
+    container_name: ${PROJECT_NAME_SERVER}-${JOB_BASE_NAME}
+    ports:
+      - "${PORT_SERVER}:${PORT_SERVER}"
+      - AUTH_TOKEN=https:${AUTH_TOKEN}
+      - SERVER=${SERVER}
+      - REDIS_HOST=${REDIS_HOST}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
