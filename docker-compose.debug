@@ -1,42 +1,19 @@
-version: '3.9'
+# ./ docker.compose.yml
+
+version: '3.8'
 
 services:
-  database:
-    container_name: database
-    image: mysql:latest
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "${DB_PORT}:${DB_PORT}"
-    volumes:
-      - ./mysql:/var/lib/mysql
-
-  api-server:
-    build:
-      context: ./projects/summa
-      dockerfile: Dockerfile
+  websocket:
+    build: .
     env_file: .env
-    container_name: ${PROJECT_NAME_SERVER}_1
-    image: server/${PROJECT_NAME_SERVER}
+    container_name: ${PROJECT_NAME_SERVER}-${JOB_BASE_NAME}
     ports:
-      - "${PORT_LOCAL_SERVER}:${PORT_LOCAL_SERVER}"
-    volumes:
-      - ./projects/summa:/var/www/summa
-    depends_on:
-      - database
+      - "${PORT_SERVER}:${PORT_SERVER}"
+    environment:
+      - AUTH_TOKEN=https:${AUTH_TOKEN}
+      - SERVER=${SERVER}
+      - REDIS_HOST=${REDIS_HOST}
 
-  nginx:
-    container_name: nginx
-    image: nginx:stable-alpine
-    ports:
-      - "${NG_PORT}:${NG_PORT}"
     volumes:
-      - ./projects/summa:/var/www/summa
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - database
-      - api-server
+      - .:/usr/src/app
+      - /usr/src/app/node_modules

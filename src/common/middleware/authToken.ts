@@ -15,7 +15,7 @@ export class AuthMiddleware {
     public wsChannelMap: Map<WebSocket, string> = new Map();
 
     constructor() {
-        validateEnv(['AUTH_TOKEN', 'CHANNEL_NAME']);
+        validateEnv(['AUTH_TOKEN']);
         this.AUTH_TOKEN = process.env.AUTH_TOKEN!;
     }
 

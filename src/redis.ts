@@ -21,8 +21,8 @@ export class RedisHandler {
         validateEnv(['SERVER', 'REDIS_HOST']);
         this.SERVER = parseInt(process.env.SERVER!);
         this.REDIS_HOST = process.env.REDIS_HOST!;
-        this.redisClient = createClient({ url: `redis://${this.REDIS_HOST}` });
-        this.redisSubscriber = createClient({ url: `redis://${this.REDIS_HOST}` });
+        this.redisClient = createClient({ url: this.REDIS_HOST });
+        this.redisSubscriber = createClient({ url: this.REDIS_HOST });
     }
 
     async connect() {
