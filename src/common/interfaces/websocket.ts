@@ -3,5 +3,6 @@
 import { WebSocket } from 'ws';
 
 export interface CustomWebSocket extends WebSocket {
-    user?: any; // Cambia `any` por el tipo adecuado de tu usuario
+    user?: any;
+    ws?: WebSocket;
 }

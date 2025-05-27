@@ -1,10 +1,9 @@
-// src/common/middleware/authToken.ts
+// backend
+// src/common/middleware/auth.middleware.ts
 
 import { WebSocket } from 'ws';
-import { CustomWebSocket } from '../interfaces/websocket';
 import axios from 'axios';
 import { validateEnv } from '../utils/validationEnv';
-import { ChannelNames } from './channelNames';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -13,30 +12,46 @@ export class AuthMiddleware {
     private readonly AUTH_TOKEN: string;
     public channels: { [key: string]: Set<WebSocket> } = {};
     public wsChannelMap: Map<WebSocket, string> = new Map();
+    // private API;
 
     constructor() {
         validateEnv(['AUTH_TOKEN']);
         this.AUTH_TOKEN = process.env.AUTH_TOKEN!;
+
+        // this.API = axios.create({
+        //     baseURL: AUTH_SERVICE
+        // })
     }
 
     public async authenticate(ws: WebSocket, req: any, next: () => void) {
-        const token = req.url.split('?token=')[1];
+        const urlParams = new URLSearchParams(req.url.split('?')[1]);
+        const token = urlParams.get('token');
+        const uid = urlParams.get('uuid');
+        const id_user = urlParams.get('userId');
+
+        console.log(`Token: ${token}, UID: ${uid}, ID User: ${id_user}`);
+
         if (token) {
             try {
-                const resp = await this.certificateToken(token);
-                console.log(`authenticate: ${resp.user.id_user}`);
+                const resp = await this.verifyToken(token);
+                resp.user.uid = uid;
+                resp.user.id_user = id_user;
                 (ws as any).user = resp.user;
                 next();
             } catch (error) {
+                console.error('Token inválido:', error);
                 ws.close(1008, 'Token inválido');
             }
         } else {
+            console.error('Token no proporcionado');
             ws.close(1008, 'Token no proporcionado');
         }
     }
 
-    private async certificateToken(token: string): Promise<any> {
+    private async verifyToken(token: string): Promise<any> {
         try {
+            // return await this.API.post('/validation/token', { token })
+
             const response = await axios.get(this.AUTH_TOKEN, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -46,20 +61,11 @@ export class AuthMiddleware {
         }
     }
 
-    public async addChannel(channelName: string, ws: CustomWebSocket) {
-        try {
-            const channel = ChannelNames.getChannelName(ws, channelName) ?? channelName;
-
-            if (!this.channels[channel]) {
-                this.channels[channel] = new Set<WebSocket>();
-            }
-            this.channels[channel].add(ws);
-            this.wsChannelMap.set(ws, channel);
-
-            console.log(`channels ${Object.keys(this.channels)}`);
-        } catch (err) {
-            console.log(err);
-            throw new Error(`Error inesperado: ${err}`);
-        }
-    }
+    // public ValidationApiKey(apikey: string) {
+    //     return this.API.get('/validation/apikey', {
+    //         headers: {
+    //             apikey
+    //         }
+    //     })
+    // }
 }

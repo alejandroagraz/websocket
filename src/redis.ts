@@ -1,16 +1,19 @@
+// backend
 // src/redis.ts
 
 import { createClient } from 'redis';
 import { WebSocketServer } from 'ws';
 import { WebSocketHandler } from './websocket';
 import { validateEnv } from './common/utils/validationEnv';
+import { UUIDManager } from './common/utils/uuidManager';
 import {ChannelNames} from "./common/middleware/channelNames";
+import { CustomWebSocket } from './common/interfaces/websocket';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 export class RedisHandler {
-    private readonly SERVER: number;
+    private readonly SERVER: string;
     private readonly REDIS_HOST: string;
     private redisClient = createClient({ url: '' });
     private redisSubscriber = createClient({ url: '' });
@@ -18,11 +21,11 @@ export class RedisHandler {
     constructor(private wss: WebSocketServer, private webSocketHandler: WebSocketHandler) {
         this.redisClient.on('error', (err) => console.error('Redis Client Error', err));
         this.redisSubscriber.on('error', (err) => console.error('Redis Client Error', err));
-        validateEnv(['SERVER', 'REDIS_HOST']);
-        this.SERVER = parseInt(process.env.SERVER!);
+        validateEnv(['REDIS_HOST']);
+        this.SERVER = UUIDManager.getInstance().getUUID();
         this.REDIS_HOST = process.env.REDIS_HOST!;
-        this.redisClient = createClient({ url: this.REDIS_HOST });
-        this.redisSubscriber = createClient({ url: this.REDIS_HOST });
+        this.redisClient = createClient({ url: `redis://${this.REDIS_HOST}` });
+        this.redisSubscriber = createClient({ url: `redis://${this.REDIS_HOST}` });
     }
 
     async connect() {
@@ -36,27 +39,30 @@ export class RedisHandler {
     }
     async publishMessages(message: any) {
         console.log(`publishMessages server->${this.SERVER}, ${message}`);
-        // const messageToSend = JSON.stringify(message);
+        const messageToSend = JSON.stringify(message);
+        console.log(messageToSend);
+        await this.redisClient.set(message.channel, JSON.stringify(message));
         await this.redisClient.publish('messages', JSON.stringify(message));
     }
 
     async handleRedisMessage(message: string) {
         console.log(`handleRedisMessage server->${this.SERVER}, ${message}`);
         const parsedMessage = JSON.parse(message);
-        const messageToSend = this.webSocketHandler.createMessageToSend(parsedMessage);
 
         if (parsedMessage.server !== this.SERVER) {
-            const channelsList = Object.keys(this.webSocketHandler.authMiddleware.channels)
+            if (parsedMessage.type === 'join') {
+                // const clientWs = this.webSocketHandler.clients.get(parsedMessage.id_user) as CustomWebSocket;
+                await this.webSocketHandler.handleMessage(JSON.stringify(parsedMessage), { user: { id_user: parsedMessage.id_user, uid: parsedMessage.uid} } as CustomWebSocket)
+            } else {
+                const messageToSend = this.webSocketHandler.createMessageToSend(parsedMessage);
+                const id_user = parsedMessage.id_user;
+                const uid = parsedMessage.uid;
+                const channel = ChannelNames.getChannelName({ user: { id_user,  uid} } as CustomWebSocket, parsedMessage.channel) ?? parsedMessage.channel;
 
-            if(channelsList.includes(parsedMessage.channel))
-                console.log(`channelsList.includes(parsedMessage.channel):  ${parsedMessage.channel}`);
-            await this.webSocketHandler.handleSendMessage(messageToSend, parsedMessage.channel);
-
-
-            // const channel = channelsList.filter(channel => channel.startsWith(parsedMessage.channel));
-            // if (channel) {
-            //     await this.webSocketHandler.handleSendMessage(messageToSend, channel[0]);
-            // }
+                if (this.webSocketHandler.authMiddleware.channels[channel]) {
+                    await this.webSocketHandler.handleSendMessage(messageToSend, channel);
+                }
+            }
         }
     }
 }

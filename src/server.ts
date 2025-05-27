@@ -1,31 +1,16 @@
-// src/server.ts
+// server.ts
 
-import http from 'http';
-import express from 'express';
+import App from './app';
 import { WebSocketServer } from 'ws';
 import { WebSocketHandler } from './websocket';
 import { RedisHandler } from './redis';
+import IndexRoute from './routes/index.route';
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const server = new WebSocketServer({ noServer: true });
+const webSocketHandler = new WebSocketHandler(server, null);
+const redisHandler = new RedisHandler(server, webSocketHandler);
+const indexRoute = new IndexRoute(webSocketHandler, redisHandler);
 
-const startServer = async () => {
-    try {
-        const wsHandler = new WebSocketHandler(wss, null);
-        const redisHandler = new RedisHandler(wss, wsHandler);
-        wsHandler.redisHandler = redisHandler;
+const app = new App([indexRoute]);
 
-        await redisHandler.connect();
-        await wsHandler.setup();
-
-        const PORT = process.env.PORT || 3000;
-        server.listen(PORT, () => {
-            console.log(`Servidor escuchando en http://localhost:${PORT}`);
-        });
-    } catch (err) {
-        console.error('Error al iniciar el servidor:', err);
-    }
-};
-
-startServer();
+app.listen();
