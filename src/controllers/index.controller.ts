@@ -56,4 +56,8 @@ export default class IndexController {
       return res.status(500).json({ error: 'Error al crear el canal.' });
     }
   }
+
+  public health = async (req: Request, res: Response): Promise<any> => {
+    res.status(200).send('OK');
+  }
 }
