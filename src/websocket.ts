@@ -17,7 +17,6 @@ export class WebSocketHandler {
     public clients: Map<string, CustomWebSocket> = new Map();
 
     constructor(private wss: WebSocketServer, public redisHandler: RedisHandler | null) {
-        validateEnv(['SERVER']);
         this.SERVER = UUIDManager.getInstance().getUUID();
         this.authMiddleware = new AuthMiddleware();
         this.clients = new Map();
