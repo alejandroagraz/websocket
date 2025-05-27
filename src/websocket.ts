@@ -8,7 +8,7 @@ import { validateEnv } from './common/utils/validationEnv';
 import { UUIDManager } from './common/utils/uuidManager';
 import dotenv from 'dotenv';
 import {CustomWebSocket} from "./common/interfaces/websocket";
-import {ChannelNames} from "./common/middleware/channelNames";
+import {ChannelNamesMiddleware} from "./common/middleware/channelNames.middleware";
 
 dotenv.config();
 export class WebSocketHandler {
@@ -58,7 +58,7 @@ export class WebSocketHandler {
         }
 
         const messageToSend = this.createMessageToSend(parsedMessage);
-        const channel = ChannelNames.getChannelName(ws, parsedMessage.channel) ?? parsedMessage.channel;
+        const channel = ChannelNamesMiddleware.getChannelName(ws, parsedMessage.channel) ?? parsedMessage.channel;
 
         if (this.authMiddleware.channels[channel]) {
             await this.handleSendMessage(messageToSend, channel);
@@ -108,7 +108,7 @@ export class WebSocketHandler {
     private async addChannel(channelName: string, ws: CustomWebSocket) {
         try {
             const channels = this.authMiddleware.channels;
-            const channel = ChannelNames.getChannelName(ws, channelName) ?? channelName;
+            const channel = ChannelNamesMiddleware.getChannelName(ws, channelName) ?? channelName;
 
             if (!channels[channel]) {
                 channels[channel] = new Set<WebSocket>();

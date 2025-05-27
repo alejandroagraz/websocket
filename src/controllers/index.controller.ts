@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { UUIDManager } from "../common/utils/uuidManager";
-import { ChannelNames } from "../common/middleware/channelNames";
+import { ChannelNamesMiddleware } from "../common/middleware/channelNames.middleware";
 import { WebSocketHandler } from "../websocket";
 import { RedisHandler } from "../redis";
 import {CustomWebSocket} from "../common/interfaces/websocket";
@@ -25,7 +25,7 @@ export default class IndexController {
       }
 
       const messageToSend = this.webSocketHandler.createMessageToSend({message});
-      const channelName = ChannelNames.getChannelName({ user: { id_user,  uid} } as CustomWebSocket, channel) ?? channel;
+      const channelName = ChannelNamesMiddleware.getChannelName({ user: { id_user,  uid} } as CustomWebSocket, channel) ?? channel;
       await this.webSocketHandler.handleSendMessage(messageToSend, channelName);
       const parsedMessage = { channel: channelName, message, id_user, uid, server: this.SERVER };
       await this.redisHandler?.publishMessages(parsedMessage);

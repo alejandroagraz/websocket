@@ -1,9 +1,9 @@
 // backend
-// src/common/middleware/ChannelNames.ts
+// src/common/middleware/ChannelNamesMiddleware.ts
 
 import { CustomWebSocket } from '../interfaces/websocket';
 
-export class ChannelNames {
+export class ChannelNamesMiddleware {
     private static clientChannelsPrivate = ['chat', 'public'];
     private static userChannelsPrivate = ['events'];
     public static clientChannelsPublic = ['dashboard'];

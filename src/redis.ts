@@ -6,7 +6,7 @@ import { WebSocketServer } from 'ws';
 import { WebSocketHandler } from './websocket';
 import { validateEnv } from './common/utils/validationEnv';
 import { UUIDManager } from './common/utils/uuidManager';
-import {ChannelNames} from "./common/middleware/channelNames";
+import {ChannelNamesMiddleware} from "./common/middleware/channelNames.middleware";
 import { CustomWebSocket } from './common/interfaces/websocket';
 import dotenv from 'dotenv';
 
@@ -59,7 +59,7 @@ export class RedisHandler {
                 const messageToSend = this.webSocketHandler.createMessageToSend(parsedMessage);
                 const id_user = parsedMessage.id_user;
                 const uid = parsedMessage.uid;
-                const channel = ChannelNames.getChannelName({ user: { id_user,  uid} } as CustomWebSocket, parsedMessage.channel) ?? parsedMessage.channel;
+                const channel = ChannelNamesMiddleware.getChannelName({ user: { id_user,  uid} } as CustomWebSocket, parsedMessage.channel) ?? parsedMessage.channel;
 
                 if (this.webSocketHandler.authMiddleware.channels[channel]) {
                     await this.webSocketHandler.handleSendMessage(messageToSend, channel);
