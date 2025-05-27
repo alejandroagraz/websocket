@@ -17,7 +17,7 @@ export default class IndexRoute implements Routes {
   }
 
   private initializeRoutes() {
-    this.router.post('/health', this.controller.health.bind(this.controller));
+    this.router.get('/health', this.controller.health.bind(this.controller));
     this.router.post('/publish', this.controller.publishMessage.bind(this.controller));
     this.router.post('/add/channels', this.controller.addChannels.bind(this.controller));
   }
