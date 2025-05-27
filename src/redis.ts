@@ -15,17 +15,19 @@ dotenv.config();
 export class RedisHandler {
     private readonly SERVER: string;
     private readonly REDIS_HOST: string;
+    private readonly REDIS_PORT: string;
     private redisClient = createClient({ url: '' });
     private redisSubscriber = createClient({ url: '' });
 
     constructor(private wss: WebSocketServer, private webSocketHandler: WebSocketHandler) {
         this.redisClient.on('error', (err) => console.error('Redis Client Error', err));
         this.redisSubscriber.on('error', (err) => console.error('Redis Client Error', err));
-        validateEnv(['REDIS_HOST']);
+        validateEnv(['REDIS_HOST', 'REDIS_PORT']);
         this.SERVER = UUIDManager.getInstance().getUUID();
         this.REDIS_HOST = process.env.REDIS_HOST!;
-        this.redisClient = createClient({ url: `redis://${this.REDIS_HOST}` });
-        this.redisSubscriber = createClient({ url: `redis://${this.REDIS_HOST}` });
+        this.REDIS_PORT = process.env.REDIS_PORT!;
+        this.redisClient = createClient({ url: `redis://${this.REDIS_HOST}:${this.REDIS_PORT}` });
+        this.redisSubscriber = createClient({ url: `redis://${this.REDIS_HOST}:${this.REDIS_PORT}` });
     }
 
     async connect() {

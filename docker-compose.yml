@@ -3,60 +3,15 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:alpine
-    container_name: redis_container
-    ports:
-      - "6379:6379"
-    command: [ "redis-server", "--notify-keyspace-events", "KEA" ]
-
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: redis_commander
-    ports:
-      - "8081:8081"
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-
-  websocket_3000:
+  websocket:
     container_name: websocket_server_1
     build: .
     ports:
-      - "3000:3000"
+      - "${PORT_SERVER}:${PORT_SERVER}"
     environment:
-      - PORT=3000
-      - AUTH_TOKEN=https://oauth.dev.myintelli.net/api/check_token
-      - SERVER=1
-      - REDIS_HOST=redis_container
+      AUTH_TOKEN: ${AUTH_TOKEN}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    depends_on:
-      - redis
-
-  websocket_3001:
-    container_name: websocket_server_2
-    build: .
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - AUTH_TOKEN=https://oauth.dev.myintelli.net/api/check_token
-      - SERVER=2
-      - REDIS_HOST=redis_container
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    depends_on:
-      - redis
-  nginx:
-    image: nginx:latest
-    container_name: nginx_container
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - websocket_3000
-      - websocket_3001
